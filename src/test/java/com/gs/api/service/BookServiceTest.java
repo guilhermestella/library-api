@@ -52,7 +52,7 @@ public class BookServiceTest {
     @DisplayName("Cannot save Book with an Existing ISBN")
     public void shouldNotSaveBookWithExistingIsbn() {
         Book book = createBook();
-        Mockito.when(repository.existsByIsbn(Mockito.anyString())).thenReturn(false);
+        Mockito.when(repository.existsByIsbn(Mockito.anyString())).thenReturn(true);
 
         Throwable throwable = Assertions.catchThrowable(() -> service.save(book));
         assertThat(throwable)
