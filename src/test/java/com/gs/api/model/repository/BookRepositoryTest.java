@@ -11,6 +11,8 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import java.util.Optional;
+
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
 @ExtendWith(SpringExtension.class)
@@ -22,7 +24,7 @@ public class BookRepositoryTest {
     TestEntityManager entityManager;
 
     @Autowired
-    BookRepository bookRepository;
+    BookRepository repository;
 
     @Test
     @DisplayName("Should be true when exists a Book by ISBN")
@@ -33,9 +35,56 @@ public class BookRepositoryTest {
         entityManager.persist(book);
 
         //when
-        boolean exists = bookRepository.existsByIsbn(isbn);
+        boolean exists = repository.existsByIsbn(isbn);
 
         //then returns
         assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should find a Book By Id")
+    public void findById() {
+        // given
+        Book newBook = createNewBook();
+        entityManager.persist(newBook);
+
+        // when
+        Optional<Book> foundBook = repository.findById(newBook.getId());
+
+        // then
+        assertThat(foundBook).isPresent();
+    }
+
+    @Test
+    @DisplayName("Should save a Book")
+    public void shouldSaveBook() {
+        // given
+        Book newBook = createNewBook();
+
+        // when
+        Book savedBook = repository.save(newBook);
+
+        // then
+        Book foundBook = entityManager.find(Book.class, savedBook.getId());
+        assertThat(foundBook).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Should delete a Book")
+    public void shouldDeleteABook() {
+        // given
+        Book newBook = createNewBook();
+        Book savedBook = entityManager.persist(newBook);
+
+        // when
+        repository.delete(savedBook);
+
+        // then
+        Book deletedBook = entityManager.find(Book.class, savedBook.getId());
+        assertThat(deletedBook).isNull();
+    }
+
+    public Book createNewBook() {
+        return Book.builder().title("Aventuras").author("Fulano").isbn("123").build();
     }
 }

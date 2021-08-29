@@ -15,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -22,6 +25,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
+import java.util.Collections;
 import java.util.Optional;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -29,7 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(SpringExtension.class)
 @ActiveProfiles("test")
-@WebMvcTest
+@WebMvcTest(controllers = BookController.class)
 @AutoConfigureMockMvc
 public class BookControllerTest {
 
@@ -181,7 +185,7 @@ public class BookControllerTest {
 
     @Test
     @DisplayName("Should update a book")
-    public void shouldUpdateBook() throws Exception {
+    public void updateBook() throws Exception {
         //given
         Long id = 1L;
         BookDTO bookDTO = createNewBookDTO();
@@ -230,6 +234,34 @@ public class BookControllerTest {
         mvc
                 .perform(request)
                 .andExpect(status().isNotFound());
+    }
+
+
+    @Test
+    @DisplayName("Should list Books by Filter")
+    public void shouldListBooksByFilter() throws Exception {
+        //given
+        Book filter = createNewBook(1L);
+        BDDMockito.given(service.find(Mockito.any(Book.class), Mockito.any(Pageable.class)))
+                .willReturn(new PageImpl<>(Collections.singletonList(filter), PageRequest.of(0, 100), 1));
+
+        // when
+        String queryString = String.format("?title=%s&author=%s&page=0&size=100",
+                filter.getTitle(), filter.getAuthor());
+        MockHttpServletRequestBuilder request = MockMvcRequestBuilders
+                .get(BOOK_API.concat(queryString))
+                .accept(MediaType.APPLICATION_JSON);
+
+        // then
+        mvc
+                .perform(request)
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("content", Matchers.hasSize(1)))
+                .andExpect(jsonPath("content[0].id").value(1))
+                .andExpect(jsonPath("content[0].title").value("As aventuras"))
+                .andExpect(jsonPath("content[0].author").value("Fulano"))
+                .andExpect(jsonPath("content[0].isbn").value("123"))
+                .andExpect(jsonPath("totalElements").value(1));
     }
 
 
