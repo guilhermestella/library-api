@@ -1,6 +1,7 @@
 package com.gs.api.service;
 
 import com.gs.api.model.entity.Book;
+import com.gs.api.model.entity.Loan;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
@@ -16,4 +17,6 @@ public interface BookService {
     void deleteById(Long id);
 
     Optional<Book> getBookByIsbn(String isbn);
+
+    Page<Loan> getLoansByBook(Book book, Pageable pageable);
 }

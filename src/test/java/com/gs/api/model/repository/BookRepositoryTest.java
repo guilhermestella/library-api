@@ -27,7 +27,7 @@ public class BookRepositoryTest {
     BookRepository repository;
 
     @Test
-    @DisplayName("Should be true when exists a Book by ISBN")
+    @DisplayName("Should be true when exists a book by Isbn")
     public void returnTrueWhenExistsBookByIsbn() {
         //given
         String isbn = "123";
@@ -56,7 +56,7 @@ public class BookRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should save a Book")
+    @DisplayName("Should save a book")
     public void shouldSaveBook() {
         // given
         Book newBook = createNewBook();
@@ -70,7 +70,7 @@ public class BookRepositoryTest {
     }
 
     @Test
-    @DisplayName("Should delete a Book")
+    @DisplayName("Should delete a book")
     public void shouldDeleteABook() {
         // given
         Book newBook = createNewBook();
@@ -82,6 +82,34 @@ public class BookRepositoryTest {
         // then
         Book deletedBook = entityManager.find(Book.class, savedBook.getId());
         assertThat(deletedBook).isNull();
+    }
+
+    @Test
+    @DisplayName("Should find a book by isbn")
+    public void shouldFindABookByIsbn() {
+        // given
+        Book book = createNewBook();
+        Book savedBook = entityManager.persist(book);
+
+        // when
+        Optional<Book> foundBook = repository.findByIsbn(book.getIsbn());
+
+        // then
+        assertThat(foundBook).isPresent();
+        assertThat(foundBook.get().getId()).isEqualTo(savedBook.getId());
+    }
+
+    @Test
+    @DisplayName("Fails to find a book by isbn")
+    public void failToFindBookByIsbn() {
+        // given
+        String isbn = "123";
+
+        // when
+        Optional<Book> foundBook = repository.findByIsbn(isbn);
+
+        // then
+        assertThat(foundBook).isEmpty();
     }
 
     public Book createNewBook() {

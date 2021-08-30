@@ -1,21 +1,35 @@
 package com.gs.api.model.entity;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
+import javax.persistence.*;
 import java.time.LocalDate;
 
-@Data
+@Getter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@Entity
+@Table
+@ToString
 public class Loan {
 
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     private String customer;
+
+    @ManyToOne
+    @JoinColumn
     private Book book;
+
     private LocalDate loanDate;
-    private Boolean returned;
+
+    private boolean returned;
+
+    public Loan returnBook() {
+        this.returned = true;
+        return this;
+    }
 }

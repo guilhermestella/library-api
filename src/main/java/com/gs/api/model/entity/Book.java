@@ -3,8 +3,9 @@ package com.gs.api.model.entity;
 import lombok.*;
 
 import javax.persistence.*;
+import java.util.List;
 
-@Data
+@Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -18,11 +19,16 @@ public class Book {
     private Long id;
 
     @Column
+    @Setter
     private String title;
 
     @Column
+    @Setter
     private String author;
 
     @Column
     private String isbn;
+
+    @OneToMany(mappedBy = "book")
+    private List<Loan> loans;
 }

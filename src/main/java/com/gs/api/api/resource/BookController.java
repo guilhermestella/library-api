@@ -1,7 +1,9 @@
 package com.gs.api.api.resource;
 
 import com.gs.api.api.dto.BookDTO;
+import com.gs.api.api.dto.LoanDTO;
 import com.gs.api.model.entity.Book;
+import com.gs.api.model.entity.Loan;
 import com.gs.api.service.BookService;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -74,5 +76,13 @@ public class BookController {
                 .map(b -> modelMapper.map(b, BookDTO.class))
                 .collect(Collectors.toList());
         return new PageImpl<>(dtos, pageable, books.getTotalElements());
+    }
+
+    @GetMapping(value = "{id}/loans")
+    public Page<LoanDTO> listLoans(@PathVariable Long id, Pageable pageable) {
+        Book book = service.getById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Book not found"));
+        Page<Loan> pagedLoans = service.getLoansByBook(book, pageable);
+        return pagedLoans.map(l -> modelMapper.map(l, LoanDTO.class));
     }
 }

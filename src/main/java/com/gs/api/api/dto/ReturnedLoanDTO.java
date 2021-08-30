@@ -2,16 +2,13 @@ package com.gs.api.api.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-@Data
 @Builder
+@Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoanDTO {
-
-    private Long id;
-    private String bookIsbn;
-    private String customer;
+public class ReturnedLoanDTO {
+    private boolean returned;
 }
