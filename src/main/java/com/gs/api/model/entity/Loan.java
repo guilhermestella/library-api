@@ -20,6 +20,8 @@ public class Loan {
 
     private String customer;
 
+    private String customerEmail;
+
     @ManyToOne
     @JoinColumn
     private Book book;
@@ -30,6 +32,11 @@ public class Loan {
 
     public Loan returnBook() {
         this.returned = true;
+        return this;
+    }
+
+    public Loan undoReturn() {
+        this.returned = false;
         return this;
     }
 }

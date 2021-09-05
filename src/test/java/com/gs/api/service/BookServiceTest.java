@@ -181,7 +181,7 @@ public class BookServiceTest {
         Book book = createBook();
         Loan loan = Loan.builder().id(1L).book(book).customer("Fulano").build();
         PageRequest pageRequest = PageRequest.of(0, 10);
-        when(loanRepository.getLoansByBook(any(Book.class), any(Pageable.class)))
+        when(loanRepository.findLoansByBook(any(Book.class), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(Collections.singletonList(loan), pageRequest, 1));
 
         // when

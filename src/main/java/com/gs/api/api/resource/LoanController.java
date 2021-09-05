@@ -16,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 
+import javax.validation.Valid;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,7 +32,7 @@ public class LoanController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public LoanDTO post(@RequestBody LoanDTO dto) {
+    public LoanDTO post(@RequestBody @Valid LoanDTO dto) {
         Book book = bookService
                 .getBookByIsbn(dto.getBookIsbn())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "Book not found"));
@@ -46,13 +47,13 @@ public class LoanController {
     }
 
     @PatchMapping("{id}")
+    @ResponseStatus(HttpStatus.OK)
     public void patch(@PathVariable Long id, @RequestBody ReturnedLoanDTO dto) {
-        Loan entity = modelMapper.map(dto, Loan.class);
-        System.out.println(entity.toString());
-        Loan loan = loanService
+        loanService
                 .getById(id)
+                .map(l -> dto.isReturned() ? l.returnBook() : l.undoReturn())
+                .map(loanService::update)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Loan not found"));
-        loanService.returnBook(loan);
     }
 
     @GetMapping

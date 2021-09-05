@@ -11,6 +11,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 @Service
@@ -36,12 +38,17 @@ public class LoanServiceImpl implements LoanService {
     }
 
     @Override
-    public Loan returnBook(Loan loan) {
+    public Loan update(Loan loan) {
         return repository.save(loan.returnBook());
     }
 
     @Override
     public Page<Loan> find(LoanFilterDTO filter, Pageable pageable) {
         return repository.findByBookIsbnOrCustumer(filter.getIsbn(), filter.getCustomer(), pageable);
+    }
+
+    @Override
+    public List<Loan> getAllLateLoans() {
+        return repository.findNotReturnedLoansAfterDay(LocalDate.now(), 3);
     }
 }

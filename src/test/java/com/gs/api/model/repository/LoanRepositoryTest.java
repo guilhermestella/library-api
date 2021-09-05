@@ -3,6 +3,7 @@ package com.gs.api.model.repository;
 import com.gs.api.model.entity.Book;
 import com.gs.api.model.entity.Loan;
 import com.gs.api.repository.LoanRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -15,6 +16,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -106,11 +108,73 @@ class LoanRepositoryTest {
         assertThat(foundLoans.getTotalElements()).isEqualTo(0);
     }
 
+    @Test
+    @DisplayName("Find Loans by Book")
+    public void findLoansByBook() {
+        // given
+        Book book1 = createBook();
+        entityManager.persist(book1);
+
+        Book book2 = createAnotherBook();
+        entityManager.persist(book2);
+
+        Loan loan1 = createLoan(book1);
+        entityManager.persist(loan1);
+
+        Loan loan2 = createLoan(book1);
+        entityManager.persist(loan2);
+
+        Loan loan3 = createLoan(book2);
+        entityManager.persist(loan3);
+
+        // when
+        Page<Loan> foundLoans = repository.findLoansByBook(book1, PageRequest.of(0, 10));
+
+        // then
+        assertThat(foundLoans.getTotalElements()).isEqualTo(2);
+        assertThat(foundLoans.getContent().get(0).getBook()).isEqualTo(book1);
+        assertThat(foundLoans.getContent().get(1).getBook()).isEqualTo(book1);
+        Throwable throwable = Assertions.catchThrowable(() -> foundLoans.getContent().get(2));
+        assertThat(throwable).isInstanceOf(IndexOutOfBoundsException.class);
+    }
+
+    @Test
+    @DisplayName("Find not returned loans after date")
+    void findNotReturnedLoansAfterDate() {
+        // given
+        LocalDate verificationDate = LocalDate.of(2000, 1, 6);
+        int daysConsideredAsLate = 3;
+        Book book1 = createBook();
+        entityManager.persist(book1);
+        Loan loan1 = createLoanToReturnAt(book1, LocalDate.of(2000, 1, 2));
+        entityManager.persist(loan1);
+        Loan loan2 = createLoanToReturnAt(book1, LocalDate.of(2000, 1, 5));
+        entityManager.persist(loan2);
+        Loan loan3 = createLoanToReturnAt(book1, LocalDate.of(2000, 1, 2));
+        loan3.returnBook();
+        entityManager.persist(loan3);
+
+        // when
+        List<Loan> foundLoans = repository.findNotReturnedLoansAfterDay(verificationDate, daysConsideredAsLate);
+
+        // then
+        assertThat(foundLoans.size()).isEqualTo(1);
+        assertThat(foundLoans.get(0)).isEqualTo(loan2);
+    }
+
+    private Loan createLoanToReturnAt(Book book, LocalDate localDate) {
+        return Loan.builder().loanDate(localDate).returned(false).book(book).customer("Fulano").build();
+    }
+
     private Loan createLoan(Book book) {
         return Loan.builder().loanDate(LocalDate.now()).returned(false).book(book).customer("Fulano").build();
     }
 
     private Book createBook() {
         return Book.builder().isbn("123").author("Fulano").title("As aventuras").build();
+    }
+
+    private Book createAnotherBook() {
+        return Book.builder().isbn("456").author("Ciclano").title("As desventuras").build();
     }
 }

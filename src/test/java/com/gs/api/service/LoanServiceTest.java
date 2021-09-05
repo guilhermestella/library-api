@@ -44,7 +44,8 @@ class LoanServiceTest {
     }
 
     @Test
-    void createLoan() {
+    @DisplayName("Save a Loan")
+    void saveTest() {
         // given
         Book book = createBook();
         Loan loan = createLoan(book);
@@ -115,7 +116,7 @@ class LoanServiceTest {
         Loan loan = createLoanWithId(createBook(), id);
 
         // when
-        service.returnBook(loan);
+        service.update(loan);
 
         // then
         assertThat(loan.isReturned()).isTrue();
@@ -141,6 +142,22 @@ class LoanServiceTest {
         assertThat(returnedLoans.getContent()).isEqualTo(loans);
     }
 
+    @Test
+    @DisplayName("Get all Late Loans")
+    void getAllLateLoans() {
+        // given
+        Loan loan = createLoan(createBook());
+        when(repository.findNotReturnedLoansAfterDay(any(LocalDate.class), anyInt()))
+                .thenReturn(Collections.singletonList(loan));
+
+        // when
+        List<Loan> allLateLoans = service.getAllLateLoans();
+
+        // then
+        assertThat(allLateLoans.size()).isEqualTo(1);
+        verify(repository, times(1))
+                .findNotReturnedLoansAfterDay(any(LocalDate.class), anyInt());
+    }
 
     private Loan createLoanWithId(Book book, Long id) {
         return Loan.builder().id(id).loanDate(LOAN_DATE).book(book).customer("Fulano").returned(false).build();

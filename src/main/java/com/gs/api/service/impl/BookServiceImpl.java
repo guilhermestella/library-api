@@ -66,6 +66,6 @@ public class BookServiceImpl implements BookService {
 
     @Override
     public Page<Loan> getLoansByBook(Book book, Pageable pageable) {
-        return loanRepository.getLoansByBook(book, pageable);
+        return loanRepository.findLoansByBook(book, pageable);
     }
 }

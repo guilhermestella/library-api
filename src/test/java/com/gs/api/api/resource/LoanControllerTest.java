@@ -58,7 +58,7 @@ public class LoanControllerTest {
     @DisplayName("Should Create a Loan")
     public void createLoan() throws Exception {
         // given
-        LoanDTO loanDTO = LoanDTO.builder().bookIsbn("123").customer("Fulano").build();
+        LoanDTO loanDTO = createLoanDTO();
         String json = new ObjectMapper().writeValueAsString(loanDTO);
 
         Book book = createBook();
@@ -87,7 +87,7 @@ public class LoanControllerTest {
     @DisplayName("Should not create a Loan when Isbn is invalid")
     public void invalidIsbn() throws Exception {
         // given
-        LoanDTO loanDTO = LoanDTO.builder().bookIsbn("123").customer("Fulano").build();
+        LoanDTO loanDTO = createLoanDTO();
         String json = new ObjectMapper().writeValueAsString(loanDTO);
         given(bookService.getBookByIsbn(anyString())).willReturn(Optional.empty());
 
@@ -110,7 +110,7 @@ public class LoanControllerTest {
     @DisplayName("Should not create a Loan when Book is already loaned")
     public void cannotLoanALoanedBook() throws Exception {
         // given
-        LoanDTO loanDTO = LoanDTO.builder().bookIsbn("123").customer("Fulano").build();
+        LoanDTO loanDTO = createLoanDTO();
         String json = new ObjectMapper().writeValueAsString(loanDTO);
 
         Book book = createBook();
@@ -141,6 +141,7 @@ public class LoanControllerTest {
         String json = new ObjectMapper().writeValueAsString(dto);
         Loan loan = createLoan(createBook());
         given(loanService.getById(anyLong())).willReturn(Optional.of(loan));
+        given(loanService.update(any(Loan.class))).willReturn(loan);
 
         // when
         MockHttpServletRequestBuilder req = MockMvcRequestBuilders
@@ -153,7 +154,7 @@ public class LoanControllerTest {
         mvc
                 .perform(req)
                 .andExpect(status().isOk());
-        verify(loanService, Mockito.times(1)).returnBook(loan);
+        verify(loanService, Mockito.times(1)).update(loan);
     }
 
     @Test
@@ -178,7 +179,7 @@ public class LoanControllerTest {
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("errors", Matchers.hasSize(1)))
                 .andExpect(jsonPath("errors[0]").value("Loan not found"));
-        verify(loanService, never()).returnBook(any(Loan.class));
+        verify(loanService, never()).update(any(Loan.class));
     }
 
     @Test
@@ -206,6 +207,10 @@ public class LoanControllerTest {
                 .andExpect(jsonPath("content[0].customer").value("Fulano"))
                 .andExpect(jsonPath("content[0].bookIsbn").value("123"))
                 .andExpect(jsonPath("totalElements").value(1));
+    }
+
+    private LoanDTO createLoanDTO() {
+        return LoanDTO.builder().bookIsbn("123").customer("Fulano").email("customer@mail").build();
     }
 
     private Book createBook() {

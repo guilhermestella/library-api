@@ -1,0 +1,19 @@
+application:
+  mail:
+    default-sender: "mail@library-api.com"
+    lateloans:
+      message: "Warning! You have to return your book"
+
+spring:
+  mail:
+    protocol: smtp
+    host: smtp.mailtrap.io
+    port: 2525
+    username: 1b82d0187cd4d6
+    password: 5ae57b202cd449
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
