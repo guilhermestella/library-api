@@ -9,6 +9,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/api/books")
 @Api("Book API")
+@Slf4j
 public class BookController {
 
     private final BookService service;
@@ -38,6 +40,7 @@ public class BookController {
     @ResponseStatus(HttpStatus.CREATED)
     @ApiOperation("Create a Book")
     public BookDTO post(@RequestBody @Valid BookDTO dto) {
+        log.info(" creating a book for isbn: {} ", dto.getIsbn());
         Book entity = modelMapper.map(dto, Book.class);
         entity = service.save(entity);
         return modelMapper.map(entity, BookDTO.class);
