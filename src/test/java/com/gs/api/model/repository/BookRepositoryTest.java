@@ -27,6 +27,22 @@ public class BookRepositoryTest {
     BookRepository repository;
 
     @Test
+    @DisplayName("Should save a book")
+    public void save() {
+        // given
+        Book book = Book.builder().title("Aventuras").author("Fulano").isbn("123").build();
+
+        // when
+        Book persistedBook = repository.save(book);
+
+        // then
+        assertThat(persistedBook.getId()).isNotNull();
+        assertThat(persistedBook.getTitle()).isEqualTo("Aventuras");
+        assertThat(persistedBook.getAuthor()).isEqualTo("Fulano");
+        assertThat(persistedBook.getIsbn()).isEqualTo("123");
+    }
+
+    @Test
     @DisplayName("Should be true when exists a book by Isbn")
     public void returnTrueWhenExistsBookByIsbn() {
         //given
@@ -39,6 +55,22 @@ public class BookRepositoryTest {
 
         //then returns
         assertThat(exists).isTrue();
+    }
+
+    @Test
+    @DisplayName("Should be false when exists a book by Isbn")
+    public void returnFalseWhenExistsBookByIsbn() {
+        //given
+        String isbn = "123";
+        String anotherIsbn = "456";
+        Object book = Book.builder().title("Aventuras").author("Fulano").isbn(anotherIsbn).build();
+        entityManager.persist(book);
+
+        //when
+        boolean exists = repository.existsByIsbn(isbn);
+
+        //then returns
+        assertThat(exists).isFalse();
     }
 
     @Test

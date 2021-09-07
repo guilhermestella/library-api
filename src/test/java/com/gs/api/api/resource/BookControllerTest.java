@@ -2,7 +2,7 @@ package com.gs.api.api.resource;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gs.api.api.dto.BookDTO;
-import com.gs.api.api.dto.LoanDTO;
+import com.gs.api.config.ModelMapperConfig;
 import com.gs.api.exception.BusinessException;
 import com.gs.api.model.entity.Book;
 import com.gs.api.model.entity.Loan;
@@ -11,12 +11,12 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.BDDMockito;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -38,6 +38,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @WebMvcTest(controllers = BookController.class)
 @AutoConfigureMockMvc
+@Import(ModelMapperConfig.class)
 public class BookControllerTest {
 
     static String BOOK_API = "/api/books";
@@ -48,15 +49,15 @@ public class BookControllerTest {
     @MockBean
     BookService service;
 
-
     @Test
     @DisplayName("Should create a book with success")
     public void createBookTest() throws Exception {
-
+        // given
         BookDTO dto = createNewBookDTO();
         Book savedBook = Book.builder().id(1L).author("Artur").title("As aventuras").isbn("001").build();
         given(service.save(Mockito.any(Book.class))).willReturn(savedBook);
 
+        // when
         String json = new ObjectMapper().writeValueAsString(dto);
         MockHttpServletRequestBuilder request = MockMvcRequestBuilders
                 .post(BOOK_API)
@@ -64,13 +65,14 @@ public class BookControllerTest {
                 .accept(MediaType.APPLICATION_JSON)
                 .content(json);
 
+        // then
         mvc
                 .perform(request)
                 .andExpect( status().isCreated() )
-                .andExpect( jsonPath("id").isNotEmpty() )
-                .andExpect( jsonPath("title").value("As aventuras") )
-                .andExpect( jsonPath("author").value("Artur") )
-                .andExpect( jsonPath("isbn").value("001") );
+                .andExpect(jsonPath("id").value(savedBook.getId()))
+                .andExpect(jsonPath("title").value(savedBook.getTitle()))
+                .andExpect(jsonPath("author").value(savedBook.getAuthor()))
+                .andExpect(jsonPath("isbn").value(savedBook.getIsbn()));
     }
 
     @Test
@@ -150,7 +152,8 @@ public class BookControllerTest {
         //then
         mvc
                 .perform(request)
-                .andExpect(status().isNotFound());
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("errors[0]").value("Book not found"));
     }
 
     @Test

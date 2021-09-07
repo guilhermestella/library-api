@@ -40,6 +40,7 @@ public class LoanController {
                 .builder()
                 .loanDate(LocalDate.now())
                 .customer(dto.getCustomer())
+                .customerEmail(dto.getCustomerEmail())
                 .book(book)
                 .build();
         loan = loanService.save(loan);

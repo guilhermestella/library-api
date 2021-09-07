@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gs.api.api.dto.LoanDTO;
 import com.gs.api.api.dto.LoanFilterDTO;
 import com.gs.api.api.dto.ReturnedLoanDTO;
+import com.gs.api.config.ModelMapperConfig;
 import com.gs.api.exception.BusinessException;
 import com.gs.api.model.entity.Book;
 import com.gs.api.model.entity.Loan;
@@ -15,10 +16,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.BDDMockito;
 import org.mockito.Mockito;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.context.annotation.Import;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -41,6 +44,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @WebMvcTest(controllers = LoanController.class)
 @AutoConfigureMockMvc
+@Import(ModelMapperConfig.class)
 public class LoanControllerTest {
 
     static final String LOAN_API = "/api/loans";
@@ -78,9 +82,10 @@ public class LoanControllerTest {
         mvc
                 .perform(request)
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("id").value(1L))
-                .andExpect(jsonPath("bookIsbn").value("123"))
-                .andExpect(jsonPath("customer").value("Fulano"));
+                .andExpect(jsonPath("id").value(loan.getId()))
+                .andExpect(jsonPath("bookIsbn").value(loan.getBook().getIsbn()))
+                .andExpect(jsonPath("customer").value(loan.getCustomer()))
+                .andExpect(jsonPath("customerEmail").value(loan.getCustomerEmail()));
     }
 
     @Test
@@ -210,7 +215,7 @@ public class LoanControllerTest {
     }
 
     private LoanDTO createLoanDTO() {
-        return LoanDTO.builder().bookIsbn("123").customer("Fulano").email("customer@mail").build();
+        return LoanDTO.builder().bookIsbn("123").customer("Fulano").customerEmail("customer@mail").build();
     }
 
     private Book createBook() {
@@ -218,6 +223,10 @@ public class LoanControllerTest {
     }
 
     private Loan createLoan(Book book) {
-        return Loan.builder().id(1L).customer("Fulano").book(book).loanDate(LocalDate.now()).build();
+        return Loan.builder()
+                .id(1L)
+                .customer("Fulano")
+                .customerEmail("customer@mail")
+                .book(book).loanDate(LocalDate.now()).build();
     }
 }
